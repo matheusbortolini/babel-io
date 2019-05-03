@@ -1,5 +1,5 @@
 # do not upload credentials
-.json
+*.json
 # Binaries for programs and plugins
 *.exe
 *.exe~
