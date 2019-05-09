@@ -3,13 +3,13 @@
 
 [[projects]]
   name = "cloud.google.com/go"
-  packages = ["compute/metadata","internal/version","texttospeech/apiv1","translate","translate/internal/translate/v2"]
+  packages = ["compute/metadata","internal/version","longrunning","longrunning/autogen","speech/apiv1","texttospeech/apiv1","translate","translate/internal/translate/v2"]
   revision = "8c41231e01b2085512d98153bcffb847ff9b4b9f"
   version = "v0.38.0"
 
 [[projects]]
   name = "github.com/golang/protobuf"
-  packages = ["proto","protoc-gen-go/descriptor","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
+  packages = ["proto","protoc-gen-go/descriptor","ptypes","ptypes/any","ptypes/duration","ptypes/empty","ptypes/timestamp"]
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
   version = "v1.3.1"
 
@@ -57,7 +57,7 @@
 
 [[projects]]
   name = "google.golang.org/api"
-  packages = ["gensupport","googleapi","googleapi/internal/uritemplates","googleapi/transport","internal","option","transport","transport/grpc","transport/http","transport/http/internal/propagation"]
+  packages = ["gensupport","googleapi","googleapi/internal/uritemplates","googleapi/transport","internal","iterator","option","transport","transport/grpc","transport/http","transport/http/internal/propagation"]
   revision = "067bed655e9cbc26f4dbac8f8897b30756d90990"
   version = "v0.4.0"
 
@@ -70,7 +70,7 @@
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/api/annotations","googleapis/cloud/texttospeech/v1","googleapis/rpc/status"]
+  packages = ["googleapis/api/annotations","googleapis/cloud/speech/v1","googleapis/cloud/texttospeech/v1","googleapis/longrunning","googleapis/rpc/status"]
   revision = "54afdca5d873f7b529e2ce3def1a99df16feda90"
 
 [[projects]]
@@ -82,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "17c20575b10176f9913417e8374e578b754a71ea59a4eba0c6d64fb71c55b362"
+  inputs-digest = "ee898af75877a77c5f84043e2cfb5b1d8bfd6cb0de0ecb08a696bf44c66fca4f"
   solver-name = "gps-cdcl"
   solver-version = 1
