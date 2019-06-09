@@ -24,11 +24,16 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 
 	speech "cloud.google.com/go/speech/apiv1"
+	texttospeech "cloud.google.com/go/texttospeech/apiv1"
+	"cloud.google.com/go/translate"
+	"golang.org/x/text/language"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
+	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
 var (
@@ -88,7 +93,7 @@ func startListeningStdin(stream speechpb.Speech_StreamingRecognizeClient) {
 }
 
 func startReceivingStream(stream speechpb.Speech_StreamingRecognizeClient,
-	out chan *speechpb.SpeechRecognitionAlternative) {
+	alts chan *speechpb.SpeechRecognitionAlternative) {
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -108,6 +113,7 @@ func startReceivingStream(stream speechpb.Speech_StreamingRecognizeClient,
 			alternatives := result.GetAlternatives()
 			for _, alt := range alternatives {
 				fmt.Println("Transcript alternatives: ", alt.Transcript)
+				alts <- alt
 			}
 		}
 	}
@@ -116,43 +122,92 @@ func startReceivingStream(stream speechpb.Speech_StreamingRecognizeClient,
 func main() {
 	ctx := context.Background()
 
-	// [START speech_transcribe_streaming_mic]
-
 	stream, err := setupSpeechStream(ctx)
 	if err != nil {
 		panic(err)
 	}
+	alts := make(chan *speechpb.SpeechRecognitionAlternative)
+	texts := make(chan string)
 
 	go startListeningStdin(stream)
-	alts := make(chan *speechpb.SpeechRecognitionAlternative)
 	go startReceivingStream(stream, alts)
+	go startTranslating(alts, "pt-BR", texts)
+	go startSpeaking(texts, "pt-BR")
 
 	wait := make(chan interface{})
 	<-wait
 }
 
-// func translateText(text, code string) {
-// 	ctx := context.Background()
+func startTranslating(alts chan *speechpb.SpeechRecognitionAlternative, code string, texts chan string) {
+	ctx := context.Background()
 
-// 	// Creates a client.
-// 	client, err := translate.NewClient(ctx)
-// 	if err != nil {
-// 		log.Fatalf("Failed to create client: %v", err)
-// 	}
+	for {
+		text := (<-alts).Transcript
+		// Creates a client.
+		client, err := translate.NewClient(ctx)
+		if err != nil {
+			log.Fatalf("Failed to create client: %v", err)
+		}
 
-// 	// Sets the text to translate.
-// 	target, err := language.Parse(code)
-// 	if err != nil {
-// 		log.Fatalf("Failed to parse target language: %v", err)
-// 	}
+		// Sets the text to translate.
+		target, err := language.Parse(code)
+		if err != nil {
+			log.Fatalf("Failed to parse target language: %v", err)
+		}
 
-// 	// Translates the text into Russian.
-// 	translations, err := client.Translate(ctx, []string{text}, target, nil)
-// 	if err != nil {
-// 		log.Fatalf("Failed to translate text: %v", err)
-// 	}
+		// Translates the text into Russian.
+		translations, err := client.Translate(ctx, []string{text}, target, nil)
+		if err != nil {
+			log.Fatalf("Failed to translate text: %v", err)
+		}
 
-// 	fmt.Printf("Text: %v\n", text)
-// 	fmt.Printf("Translation: %v\n", translations[0].Text)
+		fmt.Printf("Translation: %v\n", translations[0].Text)
+		texts <- translations[0].Text
+	}
+}
 
-// }
+func startSpeaking(texts chan string, lang string) {
+	// Instantiates a client.
+	ctx := context.Background()
+
+	client, err := texttospeech.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for {
+		text := <-texts
+
+		// Perform the text-to-speech request on the text input with the selected
+		// voice parameters and audio file type.
+		req := texttospeechpb.SynthesizeSpeechRequest{
+			// Set the text input to be synthesized.
+			Input: &texttospeechpb.SynthesisInput{
+				InputSource: &texttospeechpb.SynthesisInput_Text{Text: text},
+			},
+			// Build the voice request, select the language code ("en-US") and the SSML
+			// voice gender ("neutral").
+			Voice: &texttospeechpb.VoiceSelectionParams{
+				LanguageCode: lang,
+				SsmlGender:   texttospeechpb.SsmlVoiceGender_NEUTRAL,
+			},
+			// Select the type of audio file you want returned.
+			AudioConfig: &texttospeechpb.AudioConfig{
+				AudioEncoding: texttospeechpb.AudioEncoding_MP3,
+			},
+		}
+
+		resp, err := client.SynthesizeSpeech(ctx, &req)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// The resp's AudioContent is binary.
+		filename := "output.mp3"
+		err = ioutil.WriteFile(filename, resp.AudioContent, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Audio content written to file: %v\n", filename)
+	}
+
+}
