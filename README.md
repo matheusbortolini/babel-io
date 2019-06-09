@@ -1,2 +1,7 @@
 # babel-io
-Projeto de Sistemas Embarcados
+Embedded systems project
+
+# Requirements
+
+   - Go 1.x
+   - PortAudio
