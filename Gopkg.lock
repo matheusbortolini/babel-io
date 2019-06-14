@@ -20,12 +20,6 @@
   version = "v2.0.4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/gordonklaus/portaudio"
-  packages = ["."]
-  revision = "00e7307ccd93051979a933c6fd5ead641eba5686"
-
-[[projects]]
   name = "github.com/hashicorp/golang-lru"
   packages = ["simplelru"]
   revision = "7087cb70de9f7a8bc0a10c375cb0d2280a8edf9c"
@@ -88,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "46acb6f2cc39efc988f4aa0e992dde694f7dd8b367dae741f67573f72d2478ee"
+  inputs-digest = "e5a29e4ab44ac08d2a34e9ef681d6412273ea5ef3a9b3932dde5edc3391b4368"
   solver-name = "gps-cdcl"
   solver-version = 1

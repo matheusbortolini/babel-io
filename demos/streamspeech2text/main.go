@@ -129,9 +129,13 @@ func main() {
 	alts := make(chan *speechpb.SpeechRecognitionAlternative)
 	texts := make(chan string)
 
+	log.Println("Listening to stdin")
 	go startListeningStdin(stream)
+	log.Println("Start receiving stream")
 	go startReceivingStream(stream, alts)
+	log.Println("Start translating")
 	go startTranslating(alts, "pt-BR", texts)
+	log.Println("Start speaking")
 	go startSpeaking(texts, "pt-BR")
 
 	wait := make(chan interface{})
